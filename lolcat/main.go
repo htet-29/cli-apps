@@ -1,29 +1,41 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"math"
-	"strings"
+	"os"
 	"time"
-
-	"syreclabs.com/go/faker"
 )
 
 func main() {
 
-	var phrases []string
+	info, _ := os.Stdin.Stat()
 
-	for _ = range 2 {
-		phrases = append(phrases, faker.Hacker().Phrases()...)
+	var output []rune
+
+	//os.ModeCharDevice is a flag that indicates a terminal or console device.
+	// info.Mode() gets the mode bits.
+	// The & (bitwise AND) checks if that flag is set.
+	if info.Mode()&os.ModeCharDevice != 0 {
+		fmt.Println("The command is intended to work with pipes.")
+		fmt.Println("Usage: fortune | gorainbow")
 	}
 
-	output := strings.Join(phrases[:], "; ")
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		input, _, err := reader.ReadRune()
+		if err != nil && err == io.EOF {
+			break
+		}
+		output = append(output, input)
+	}
 
 	typewriter(output, 4*time.Millisecond)
-
 }
 
-func typewriter(text string, delay time.Duration) {
+func typewriter(text []rune, delay time.Duration) {
 	for j, ch := range text {
 		r, g, b := rgb(j) // GOLD COLOR
 		fmt.Printf("\033[38;2;%d;%d;%dm%c\033[0m", r, g, b, ch)
